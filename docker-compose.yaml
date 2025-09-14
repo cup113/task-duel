@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  express:
+    build:
+      context: .
+      dockerfile: Dockerfile.express
+    container_name: express
+    ports:
+      - "4136:4136"
+    restart: always
+    depends_on:
+      - pocketbase
+    environment:
+      - APP_ENV=production
+      - POCKETBASE_URL=http://pocketbase:4137
+
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+    container_name: pocketbase
+    ports:
+      - "4137:4137"
+    restart: always
+    volumes:
+      - pocketbase_data:/db/pb_data

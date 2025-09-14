@@ -1,0 +1,20 @@
+{
+    "name": "task-duel-server",
+    "scripts": {
+        "build": "tsc -p tsconfig.json"
+    },
+    "dependencies": {
+        "@types/compression": "^1.8.1",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.3",
+        "compression": "^1.8.1",
+        "cors": "^2.8.5",
+        "express": "^5.1.0",
+        "nanoid": "^5.1.5",
+        "pocketbase": "^0.26.2"
+    },
+    "devDependencies": {
+        "@types/node": "^24.3.3",
+        "typescript": "^5.9.2"
+    }
+}

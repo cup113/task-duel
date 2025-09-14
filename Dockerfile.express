@@ -1,0 +1,21 @@
+# Root directory
+# Note: ./types/pocketbase-types.d.ts should be generated manually before pushing to github
+FROM node:22
+
+WORKDIR /app
+RUN npm install -g pnpm
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
+COPY index.html vite.config.ts tsconfig* env.d.ts ./
+COPY public ./public
+COPY src ./src
+RUN pnpm run build
+
+# Server
+COPY server ./server
+RUN cd server && \
+    pnpm install --frozen-lockfile
+RUN cd server && \
+    pnpm run build
+EXPOSE 4136
+CMD ["node", "server/dist/main.mjs"]
