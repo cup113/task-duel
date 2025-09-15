@@ -9,9 +9,9 @@
           </div>
 
           <div class="flex items-center space-x-3">
-            <span class="text-sm text-gray-600 hidden sm:inline"
-              >欢迎，{{ authStore.user?.name }}</span
-            >
+            <RouterLink to="/auth" class="text-sm text-gray-600 hidden sm:inline"
+              >{{ authStore.user?.name }}
+            </RouterLink>
             <button
               @click="handleLogout"
               class="text-sm text-gray-600 hover:text-gray-900 px-2 py-1"

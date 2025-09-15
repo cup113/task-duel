@@ -14,7 +14,6 @@ const router = createRouter({
       path: '/auth',
       name: 'auth',
       component: () => import('@/views/AuthView.vue'),
-      meta: { requiresGuest: true },
     },
     {
       path: '/room/:id',

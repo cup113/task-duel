@@ -14,6 +14,7 @@ import type {
 } from '../types/pocketbase-types.js'
 import Pocketbase, { ClientResponseError, type RecordAuthResponse } from 'pocketbase'
 import { env } from 'process'
+import { logger, logError, logWithDbOperation } from './logging.mjs'
 
 type UsersCreate = Omit<UsersRecord, 'id' | 'created' | 'updated' | 'tokenKey'> & {
   passwordConfirm: string
@@ -33,28 +34,44 @@ export class DatabaseService {
    * 创建用户
    */
   async createUser(data: UsersCreate): Promise<UsersResponse> {
-    return this.pb.collection('users').create(data)
+    return logWithDbOperation('createUser', () => this.pb.collection('users').create(data), { data })
   }
 
   /**
    * 通过邮箱获取用户
    */
   async getUserByEmail(email: string): Promise<UsersResponse | null> {
-    return this.pb.collection('users').getFirstListItem(`email="${email}"`)
+    try {
+      return logWithDbOperation(
+        'getUserByEmail',
+        () => this.pb.collection('users').getFirstListItem(`email="${email}"`),
+        { email },
+      )
+    } catch (error) {
+      if (error instanceof ClientResponseError && (error.status === 404 || error.status === 400)) {
+        return null
+      }
+      throw error
+    }
   }
 
   /**
    * 通过ID获取用户
    */
   async getUserById(id: string): Promise<UsersResponse> {
-    return this.pb.collection('users').getOne(id)
+    return logWithDbOperation('getUserById', () => this.pb.collection('users').getOne(id), {
+      userId: id,
+    })
   }
 
   /**
    * 更新用户信息
    */
   async updateUser(id: string, data: Partial<UsersRecord>): Promise<UsersResponse> {
-    return this.pb.collection('users').update(id, data)
+    return logWithDbOperation('updateUser', () => this.pb.collection('users').update(id, data), {
+      userId: id,
+      data,
+    })
   }
 
   /**
@@ -64,21 +81,30 @@ export class DatabaseService {
     email: string,
     password: string,
   ): Promise<RecordAuthResponse<UsersRecord>> {
-    return this.pb.collection('users').authWithPassword(email, password)
+    return logWithDbOperation(
+      'authenticateUser',
+      () => this.pb.collection('users').authWithPassword(email, password),
+      { email },
+    )
   }
 
   /**
    * 创建游客用户
    */
   async createGuestUser(name: string, email: string, password: string): Promise<UsersResponse> {
-    return this.createUser({
-      email,
-      name,
-      password,
-      passwordConfirm: password,
-      emailVisibility: false,
-      verified: false,
-    })
+    return logWithDbOperation(
+      'createGuestUser',
+      () =>
+        this.createUser({
+          email,
+          name,
+          password,
+          passwordConfirm: password,
+          emailVisibility: false,
+          verified: false,
+        }),
+      { name, email },
+    )
   }
 
   // ==================== 房间相关操作 ====================
@@ -87,7 +113,7 @@ export class DatabaseService {
    * 创建房间
    */
   async createRoom(data: Omit<RoomsRecord, 'id' | 'created' | 'updated'>): Promise<RoomsResponse> {
-    return this.pb.collection('rooms').create(data)
+    return logWithDbOperation('createRoom', () => this.pb.collection('rooms').create(data), { data })
   }
 
   /**
@@ -95,7 +121,11 @@ export class DatabaseService {
    */
   async getRoomByCode(code: string): Promise<RoomsResponse | null> {
     try {
-      return await this.pb.collection('rooms').getFirstListItem(`code="${code}"`)
+      return await logWithDbOperation(
+        'getRoomByCode',
+        () => this.pb.collection('rooms').getFirstListItem(`code="${code}"`),
+        { code },
+      )
     } catch (error) {
       if (error instanceof ClientResponseError) {
         if (error.status === 404) return null
@@ -110,51 +140,76 @@ export class DatabaseService {
   async getRoomById(
     id: string,
   ): Promise<RoomsResponse<{ owner: UsersResponse; participants: UsersResponse[] }>> {
-    return this.pb.collection('rooms').getOne(id, {
-      expand: 'owner,participants',
-    })
+    return logWithDbOperation(
+      'getRoomById',
+      () =>
+        this.pb.collection('rooms').getOne(id, {
+          expand: 'owner,participants',
+        }),
+      { roomId: id },
+    )
   }
 
   /**
    * 更新房间信息
    */
   async updateRoom(id: string, data: Partial<RoomsRecord>): Promise<RoomsResponse> {
-    return this.pb.collection('rooms').update(id, data)
+    return logWithDbOperation('updateRoom', () => this.pb.collection('rooms').update(id, data), {
+      roomId: id,
+      data,
+    })
   }
 
   /**
    * 添加用户到房间
    */
   async addUserToRoom(roomId: string, userId: string): Promise<RoomsResponse> {
-    const room = await this.getRoomById(roomId)
-    const participants = room.participants || []
+    return logWithDbOperation(
+      'addUserToRoom',
+      async () => {
+        const room = await this.getRoomById(roomId)
+        const participants = room.participants || []
 
-    if (!participants.includes(userId)) {
-      participants.push(userId)
-      return this.updateRoom(roomId, { participants })
-    }
+        if (!participants.includes(userId)) {
+          participants.push(userId)
+          return this.updateRoom(roomId, { participants })
+        }
 
-    return room
+        return room
+      },
+      { roomId, userId },
+    )
   }
 
   /**
    * 从房间移除用户
    */
   async removeUserFromRoom(roomId: string, userId: string): Promise<RoomsResponse> {
-    const room = await this.getRoomById(roomId)
-    const participants = room.participants || []
+    return logWithDbOperation(
+      'removeUserFromRoom',
+      async () => {
+        const room = await this.getRoomById(roomId)
+        const participants = room.participants || []
 
-    const updatedParticipants = participants.filter((id) => id !== userId)
-    return this.updateRoom(roomId, { participants: updatedParticipants })
+        const updatedParticipants = participants.filter((id) => id !== userId)
+        return this.updateRoom(roomId, { participants: updatedParticipants })
+      },
+      { roomId, userId },
+    )
   }
 
   /**
    * 获取用户加入的所有房间
    */
   async getUserRooms(userId: string): Promise<RoomsResponse[]> {
-    return this.pb.collection('rooms').getFullList({
-      filter: `participants ~ "${userId}"`,
-    })
+    return logWithDbOperation(
+      'getUserRooms',
+      () =>
+        this.pb.collection('rooms').getFullList({
+          filter: `participants ~ "${userId}"`,
+        }),
+      { userId },
+    )
   }
 
   // ==================== 任务相关操作 ====================
@@ -163,17 +218,22 @@ export class DatabaseService {
    * 创建任务
    */
   async createTask(data: Omit<TasksRecord, 'id' | 'created' | 'updated'>): Promise<TasksResponse> {
-    return this.pb.collection('tasks').create(data)
+    return logWithDbOperation('createTask', () => this.pb.collection('tasks').create(data), { data })
   }
 
   /**
    * 获取房间的所有任务
    */
   async getRoomTasks(roomId: string): Promise<TasksResponse[]> {
-    return this.pb.collection('tasks').getFullList({
-      filter: `room="${roomId}"`,
-      sort: '-created',
-    })
+    return logWithDbOperation(
+      'getRoomTasks',
+      () =>
+        this.pb.collection('tasks').getFullList({
+          filter: `room="${roomId}"`,
+          sort: '-created',
+        }),
+      { roomId },
+    )
   }
 
   /**

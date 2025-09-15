@@ -72,6 +72,13 @@ export const userAPI = {
       method: 'POST',
       body: JSON.stringify({ ids }),
     }),
+
+  // 更新用户信息
+  updateUser: (id: string, data: { name?: string; email?: string }) =>
+    apiRequest<User>(`/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 }
 
 // 房间API

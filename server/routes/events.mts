@@ -1,5 +1,5 @@
 import { Router, type Response } from 'express'
-import { DatabaseService } from '../services/database.mjs'
+import { logger } from '../services/logging.mjs'
 
 const router = Router()
 
@@ -24,6 +24,10 @@ router.get('/:roomId', async (req, res) => {
 
   // 发送初始连接确认
   res.write(`event: connected\ndata: {\"message\": \"Connected to room ${roomId}\"}\n\n`)
+  logger.info('SSE connection established', {
+    roomId,
+    connectionCount: activeConnections.get(roomId)!.length,
+  })
 
   // 处理连接关闭
   req.on('close', () => {
@@ -37,6 +41,7 @@ router.get('/:roomId', async (req, res) => {
         activeConnections.delete(roomId)
       }
     }
+    logger.info('SSE connection closed', { roomId, remainingConnections: connections?.length || 0 })
     res.end()
   })
 })
@@ -47,6 +52,12 @@ export function broadcastToRoom(roomId: string, event: string, data: any) {
   if (connections) {
     const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`
 
+    logger.debug('Broadcasting event to room', {
+      roomId,
+      event,
+      connectionCount: connections.length,
+    })
+
     // 使用反向遍历避免索引问题
     for (let i = connections.length - 1; i >= 0; i--) {
       try {
@@ -54,12 +65,14 @@ export function broadcastToRoom(roomId: string, event: string, data: any) {
       } catch (error) {
         // 移除失效的连接
         connections.splice(i, 1)
+        logger.warn('Removed broken SSE connection', { roomId })
       }
     }
 
     // 清理空连接列表
     if (connections.length === 0) {
       activeConnections.delete(roomId)
+      logger.info('Room SSE connections cleared', { roomId })
     }
   }
 }

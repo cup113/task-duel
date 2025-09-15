@@ -13,9 +13,19 @@
           </div>
         </div>
 
-        <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0" :class="{ 'rotate-180': isExpanded }"
-          fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <svg
+          class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0"
+          :class="{ 'rotate-180': isExpanded }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </div>
     </div>
@@ -30,8 +40,12 @@
               <thead>
                 <tr>
                   <th class="text-left text-xs font-medium text-gray-500 py-2">子任务</th>
-                  <th v-for="(participant, i) in participants" :key="participant.id"
-                    class="text-left text-xs font-medium text-gray-500 py-2 px-2" :class="{ 'bg-blue-100': i === 0 }">
+                  <th
+                    v-for="(participant, i) in participants"
+                    :key="participant.id"
+                    class="text-left text-xs font-medium text-gray-500 py-2 px-2"
+                    :class="{ 'bg-blue-100': i === 0 }"
+                  >
                     {{ participant.name }}
                   </th>
                 </tr>
@@ -41,10 +55,16 @@
                   <td class="text-sm font-medium text-gray-900 py-2">
                     {{ subtask.title }}
                   </td>
-                  <td v-for="(participant, i) in participants" :key="participant.id" class="py-2 px-2"
-                    :class="{ 'bg-blue-100': i === 0 }">
-                    <button @click="handleSubtaskClick(subtask.id, participant.id)"
-                      class="w-16 h-8 border flex items-center justify-center text-sm" :class="{
+                  <td
+                    v-for="(participant, i) in participants"
+                    :key="participant.id"
+                    class="py-2 px-2"
+                    :class="{ 'bg-blue-100': i === 0 }"
+                  >
+                    <button
+                      @click="handleSubtaskClick(subtask.id, participant.id)"
+                      class="w-16 h-8 border flex items-center justify-center text-sm"
+                      :class="{
                         'border-green-500 bg-green-100 text-green-700': isSubtaskCompleted(
                           subtask.id,
                           participant.id,
@@ -58,10 +78,14 @@
                           !isSubtaskInProgress(subtask.id, participant.id),
                         'hover:border-blue-500 hover:bg-blue-50 cursor-pointer':
                           participant.id === authStore.user?.id,
-                      }" :disabled="participant.id !== authStore.user?.id">
+                      }"
+                      :disabled="participant.id !== authStore.user?.id"
+                    >
                       {{ getSubtaskDisplayText(subtask.id, participant.id) }}
-                      <span v-if="(getSubtaskCompletion(subtask.id, participant.id)?.progress ?? 0) > 0"
-                        class="text-xs text-gray-400 block mt-1">
+                      <span
+                        v-if="(getSubtaskCompletion(subtask.id, participant.id)?.progress ?? 0) > 0"
+                        class="text-xs text-gray-400 block mt-1"
+                      >
                         {{
                           formatTime(
                             getSubtaskCompletion(subtask.id, participant.id)?.updated || '',
@@ -82,8 +106,10 @@
 
           <!-- 添加子任务按钮 -->
           <div class="mt-3 flex justify-end">
-            <button @click="showCreateSubtaskModal = true"
-              class="bg-blue-600 text-white px-3 py-1 text-sm hover:bg-blue-700">
+            <button
+              @click="showCreateSubtaskModal = true"
+              class="bg-blue-600 text-white px-3 py-1 text-sm hover:bg-blue-700"
+            >
               添加子任务
             </button>
           </div>
@@ -92,8 +118,10 @@
     </div>
 
     <!-- 简化添加子任务模态框 -->
-    <div v-if="showCreateSubtaskModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div
+      v-if="showCreateSubtaskModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50"
+    >
       <div class="bg-white p-6 w-full max-w-sm">
         <h3 class="text-lg font-medium text-gray-900 mb-4">添加子任务</h3>
 
@@ -102,18 +130,29 @@
             <label for="subtasks" class="block text-sm font-medium text-gray-700 mb-1">
               子任务列表（每行一个，支持"3~8"格式）
             </label>
-            <textarea id="subtasks" v-model="subtasksText" rows="6" required
+            <textarea
+              id="subtasks"
+              v-model="subtasksText"
+              rows="6"
+              required
               class="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
-              placeholder="请输入子任务，每行一个&#10;例如：&#10;1&#10;2&#10;3~5&#10;6" />
+              placeholder="请输入子任务，每行一个&#10;例如：&#10;1&#10;2&#10;3~5&#10;6"
+            />
           </div>
 
           <div class="flex justify-end space-x-3">
-            <button type="button" @click="showCreateSubtaskModal = false"
-              class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
+            <button
+              type="button"
+              @click="showCreateSubtaskModal = false"
+              class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+            >
               取消
             </button>
-            <button type="submit" :disabled="roomStore.isLoading"
-              class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50">
+            <button
+              type="submit"
+              :disabled="roomStore.isLoading"
+              class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
+            >
               添加
             </button>
           </div>
@@ -122,18 +161,26 @@
     </div>
 
     <!-- 撤销完成确认模态框 -->
-    <div v-if="showUndoConfirmModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div
+      v-if="showUndoConfirmModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50"
+    >
       <div class="bg-white p-6 w-full max-w-xs">
         <h3 class="text-lg font-medium text-gray-900 mb-4">撤销完成</h3>
         <p class="text-sm text-gray-600 mb-6">确定要撤销这个子任务的完成状态吗？</p>
 
         <div class="flex justify-end space-x-3">
-          <button type="button" @click="showUndoConfirmModal = false"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
+          <button
+            type="button"
+            @click="showUndoConfirmModal = false"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+          >
             取消
           </button>
-          <button @click="undoSubtaskCompletion" class="px-4 py-2 bg-red-600 text-white text-sm hover:bg-red-700">
+          <button
+            @click="undoSubtaskCompletion"
+            class="px-4 py-2 bg-red-600 text-white text-sm hover:bg-red-700"
+          >
             确认撤销
           </button>
         </div>
