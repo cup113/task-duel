@@ -13,7 +13,8 @@
         "cors": "^2.8.5",
         "express": "^5.1.0",
         "nanoid": "^5.1.5",
-        "pocketbase": "^0.26.2"
+        "pocketbase": "^0.26.2",
+        "winston": "^3.17.0"
     },
     "devDependencies": {
         "@types/node": "^24.3.3",
