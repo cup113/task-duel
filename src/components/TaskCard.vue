@@ -13,19 +13,9 @@
           </div>
         </div>
 
-        <svg
-          class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0"
-          :class="{ 'rotate-180': isExpanded }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 9l-7 7-7-7"
-          />
+        <svg class="w-4 h-4 text-gray-400 transition-transform flex-shrink-0" :class="{ 'rotate-180': isExpanded }"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </div>
     </div>
@@ -33,70 +23,67 @@
     <div>
       <!-- 子任务内容 - 展开时显示 -->
       <div v-if="isExpanded" class="bg-gray-50">
-        <div class="bg-white px-6 py-2">
-          <!-- 简化子任务表格 -->
+        <div class="bg-white px-4 py-3">
+          <!-- 响应式子任务矩阵 -->
           <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead>
-                <tr>
-                  <th class="text-left text-xs font-medium text-gray-500 py-2">子任务</th>
-                  <th
-                    v-for="(participant, i) in participants"
-                    :key="participant.id"
-                    class="text-left text-xs font-medium text-gray-500 py-2 px-2"
-                    :class="{ 'bg-blue-100': i === 0 }"
-                  >
-                    {{ participant.name }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="subtask in sortedSubtasks" :key="subtask.id">
-                  <td class="text-sm font-medium text-gray-900 py-2">
-                    {{ subtask.title }}
-                  </td>
-                  <td
-                    v-for="(participant, i) in participants"
-                    :key="participant.id"
-                    class="py-2 px-2"
-                    :class="{ 'bg-blue-100': i === 0 }"
-                  >
-                    <button
-                      @click="handleSubtaskClick(subtask.id, participant.id)"
-                      class="w-16 h-8 border flex items-center justify-center text-sm"
-                      :class="{
-                        'border-green-500 bg-green-100 text-green-700': isSubtaskCompleted(
-                          subtask.id,
-                          participant.id,
-                        ),
-                        'border-blue-500 bg-blue-100 text-blue-700': isSubtaskInProgress(
-                          subtask.id,
-                          participant.id,
-                        ),
-                        'border-gray-300 bg-gray-50 text-gray-400':
-                          !isSubtaskCompleted(subtask.id, participant.id) &&
-                          !isSubtaskInProgress(subtask.id, participant.id),
-                        'hover:border-blue-500 hover:bg-blue-50 cursor-pointer':
-                          participant.id === authStore.user?.id,
-                      }"
-                      :disabled="participant.id !== authStore.user?.id"
-                    >
-                      {{ getSubtaskDisplayText(subtask.id, participant.id) }}
-                      <span
-                        v-if="(getSubtaskCompletion(subtask.id, participant.id)?.progress ?? 0) > 0"
-                        class="text-xs text-gray-400 block mt-1"
-                      >
-                        {{
-                          formatTime(
-                            getSubtaskCompletion(subtask.id, participant.id)?.updated || '',
-                          )
-                        }}
-                      </span>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <!-- 用户表头 - 固定在顶部 -->
+            <div class="grid grid-cols-1 gap-2 min-w-max">
+              <!-- 表头行 -->
+              <div
+                class="grid grid-cols-[200px_repeat(auto-fit,minmax(80px,1fr))] gap-2 sticky top-0 bg-white z-10 pb-2 border-b">
+                <div class="text-sm font-medium text-gray-500 py-2">子任务</div>
+                <div v-for="(participant, index) in participants" :key="participant.id"
+                  class="text-sm font-medium text-gray-500 py-2 px-2 text-center truncate" :title="participant.name">
+                  {{ participant.name }}
+                </div>
+              </div>
+
+              <!-- 子任务行 -->
+              <div v-for="subtask in sortedSubtasks" :key="subtask.id"
+                class="grid grid-cols-[200px_repeat(auto-fit,minmax(80px,1fr))] gap-2 items-center py-2 hover:bg-gray-50 rounded">
+                <!-- 子任务标题 -->
+                <div class="text-sm font-medium text-gray-900 truncate" :title="subtask.title">
+                  {{ subtask.title }}
+                </div>
+
+                <!-- 用户状态单元格 -->
+                <div v-for="participant in participants" :key="participant.id" class="flex justify-center">
+                  <button @click="handleSubtaskClick(subtask.id, participant.id)"
+                    class="w-16 h-8 rounded-lg border-2 flex flex-col items-center justify-center text-sm transition-all duration-200"
+                    :class="{
+                      // 状态样式
+                      'border-green-500 bg-green-100 text-green-700 shadow-sm': isSubtaskCompleted(
+                        subtask.id,
+                        participant.id,
+                      ),
+                      'border-blue-500 bg-blue-100 text-blue-700 shadow-sm': isSubtaskInProgress(
+                        subtask.id,
+                        participant.id,
+                      ),
+                      'border-gray-300 bg-gray-50 text-gray-400':
+                        !isSubtaskCompleted(subtask.id, participant.id) &&
+                        !isSubtaskInProgress(subtask.id, participant.id),
+
+                      // 交互样式
+                      'hover:scale-105 hover:shadow-md cursor-pointer':
+                        participant.id === authStore.user?.id,
+                      'opacity-60': participant.id !== authStore.user?.id,
+
+                      // 动画效果
+                      'animate-pulse': isSubtaskInProgress(subtask.id, participant.id),
+                    }" :disabled="participant.id !== authStore.user?.id" :title="participant.id === authStore.user?.id ? '点击更新状态' : participant.name
+                      ">
+                    <!-- 时间显示 -->
+                    <span v-if="(getSubtaskCompletion(subtask.id, participant.id)?.progress ?? 0) > 0"
+                      class="text-xs text-gray-500">
+                      {{
+                        formatTime(getSubtaskCompletion(subtask.id, participant.id)?.updated || '')
+                      }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 空状态 -->
@@ -106,10 +93,8 @@
 
           <!-- 添加子任务按钮 -->
           <div class="mt-3 flex justify-end">
-            <button
-              @click="showCreateSubtaskModal = true"
-              class="bg-blue-600 text-white px-3 py-1 text-sm hover:bg-blue-700"
-            >
+            <button @click="showCreateSubtaskModal = true"
+              class="bg-blue-600 text-white px-3 py-1 text-sm hover:bg-blue-700">
               添加子任务
             </button>
           </div>
@@ -118,10 +103,8 @@
     </div>
 
     <!-- 简化添加子任务模态框 -->
-    <div
-      v-if="showCreateSubtaskModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50"
-    >
+    <div v-if="showCreateSubtaskModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div class="bg-white p-6 w-full max-w-sm">
         <h3 class="text-lg font-medium text-gray-900 mb-4">添加子任务</h3>
 
@@ -130,29 +113,18 @@
             <label for="subtasks" class="block text-sm font-medium text-gray-700 mb-1">
               子任务列表（每行一个，支持"3~8"格式）
             </label>
-            <textarea
-              id="subtasks"
-              v-model="subtasksText"
-              rows="6"
-              required
+            <textarea id="subtasks" v-model="subtasksText" rows="6" required
               class="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
-              placeholder="请输入子任务，每行一个&#10;例如：&#10;1&#10;2&#10;3~5&#10;6"
-            />
+              placeholder="请输入子任务，每行一个&#10;例如：&#10;1&#10;2&#10;3~5&#10;6" />
           </div>
 
           <div class="flex justify-end space-x-3">
-            <button
-              type="button"
-              @click="showCreateSubtaskModal = false"
-              class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-            >
+            <button type="button" @click="showCreateSubtaskModal = false"
+              class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
               取消
             </button>
-            <button
-              type="submit"
-              :disabled="roomStore.isLoading"
-              class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
-            >
+            <button type="submit" :disabled="roomStore.isLoading"
+              class="px-4 py-2 bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50">
               添加
             </button>
           </div>
@@ -161,26 +133,18 @@
     </div>
 
     <!-- 撤销完成确认模态框 -->
-    <div
-      v-if="showUndoConfirmModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50"
-    >
+    <div v-if="showUndoConfirmModal"
+      class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div class="bg-white p-6 w-full max-w-xs">
         <h3 class="text-lg font-medium text-gray-900 mb-4">撤销完成</h3>
         <p class="text-sm text-gray-600 mb-6">确定要撤销这个子任务的完成状态吗？</p>
 
         <div class="flex justify-end space-x-3">
-          <button
-            type="button"
-            @click="showUndoConfirmModal = false"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
-          >
+          <button type="button" @click="showUndoConfirmModal = false"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
             取消
           </button>
-          <button
-            @click="undoSubtaskCompletion"
-            class="px-4 py-2 bg-red-600 text-white text-sm hover:bg-red-700"
-          >
+          <button @click="undoSubtaskCompletion" class="px-4 py-2 bg-red-600 text-white text-sm hover:bg-red-700">
             确认撤销
           </button>
         </div>
@@ -193,6 +157,7 @@
 import { ref, computed } from 'vue'
 import { useAuthStore, useRoomStore } from '@/stores'
 import { subtaskAPI, completionAPI } from '@/services/api'
+import dayjs from 'dayjs'
 
 const props = defineProps<{
   task: any
@@ -338,30 +303,11 @@ const handleCreateSubtasks = async () => {
   }
 }
 
-// 获取子任务显示文本
-const getSubtaskDisplayText = (subtaskId: string, userId: string) => {
-  const completion = getSubtaskCompletion(subtaskId, userId)
-
-  if (!completion || completion.progress === 0) {
-    return '➖'
-  }
-
-  if (completion.progress === 1) {
-    return '✅'
-  }
-
-  return '🟡'
-}
-
-// 格式化时间为 hh:mm
 const formatTime = (dateString: string) => {
-  const date = new Date(dateString)
-  const hours = date.getHours().toString().padStart(2, '0')
-  const minutes = date.getMinutes().toString().padStart(2, '0')
-  return `${hours}:${minutes}`
+  return dayjs(dateString).format('HH:mm')
 }
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('zh-CN')
+  return dayjs(dateString).format('YYYY/MM/DD hh:mm')
 }
 </script>

@@ -15,6 +15,7 @@ router.get('/:roomId', async (req, res) => {
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Connection', 'keep-alive')
   res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('X-Accel-Buffering', 'no')
 
   // 将连接添加到活跃连接列表
   if (!activeConnections.has(roomId)) {

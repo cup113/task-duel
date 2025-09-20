@@ -15,14 +15,14 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 
   const headers: HeadersInit = authStore.user?.token
     ? {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authStore.user.token}`,
-        ...options.headers,
-      }
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authStore.user.token}`,
+      ...options.headers,
+    }
     : {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      }
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
 
   const response = await fetch(url, {
     ...options,

@@ -2,6 +2,7 @@ import { eventAPI } from './api'
 import { useRoomStore } from '@/stores/room'
 import type { RoomEvent } from '@/types'
 import { taskAPI, subtaskAPI, completionAPI, userAPI } from './api'
+import dayjs from 'dayjs'
 
 export class EventService {
   private eventSource: EventSource | null = null
@@ -92,7 +93,7 @@ export class EventService {
         const completions = await completionAPI.getUserCompletion(data.userId, data.subtaskId)
         if (completions.length > 0) {
           // 更新store中的完成状态
-          const updatedCompletion = { ...completions[0], progress: data.progress }
+          const updatedCompletion = { ...completions[0], progress: data.progress, updated: dayjs().toISOString() }
           this.roomStore.updateCompletion(updatedCompletion)
         }
       } catch (error) {

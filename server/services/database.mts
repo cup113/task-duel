@@ -348,7 +348,7 @@ export class DatabaseService {
    */
   async getSubtaskCompletion(subtaskId: string): Promise<CompletionResponse[]> {
     return this.pb.collection('completion').getFullList({
-      filter: `progress > 0`,
+      filter: `progress > 0 && subtask.id = "${subtaskId}"`,
       expand: 'user',
     })
   }

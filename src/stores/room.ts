@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 import type { Room, Task, Subtask, Completion } from '@/types'
 import { useAuthStore } from './auth'
+import dayjs from 'dayjs'
 
 export const useRoomStore = defineStore('room', () => {
   const currentRoom = ref<Room | null>(null)
@@ -70,6 +71,7 @@ export const useRoomStore = defineStore('room', () => {
 
     if (completion) {
       completion.progress = progress
+      completion.updated = dayjs().toISOString()
     }
   }
 
